@@ -1,3 +1,4 @@
+
 var config = require('config')
   , _ = require('lodash')
   , Jsftp = require('jsftp')
@@ -8,7 +9,7 @@ var config = require('config')
 function quitConn(myFtp){
   myFtp.raw.quit(function(err, data) {
     if (err) return console.error(err);
- 
+
     console.log("Bye!");
 });
 }
@@ -33,7 +34,7 @@ function getCookie (name,cookies){
 ftps.connect = function (req, res, next) {
   try{
     var ftp = new Jsftp(req.body);
-  
+
 
   ftp.auth(req.body.user,req.body.pass,function(err,result){
     quitConn(ftp)
@@ -54,26 +55,21 @@ ftps.upload = function(req,res,next){
   console.log('req body',req.body)
   // return res.send('successful')
   // async.each
-  
+
   try{
     var ftp = new Jsftp(req.session.ftp);
   }catch(e){
     return next({errors:[e],status:500})
   }
-  async.eachSeries(req.files.uploadfile,function(file,callback){
-    var filePath = file.path;
-    var filename = file.originalFilename;
-    var fileData = fs.readFileSync(filePath);
-    console.log('uploadfile',req.body.dir + filename)
-    ftp.put(fileData, req.body.dir + filename, function(hadError) {
-       if(hadError) callback(hadError)
-       else callback();
-    });
-  },function(err){
-     quitConn(ftp) 
-     if(err) return next(err)
-     else res.json({message:'Files Uploaded Successfully'})
-  })
+  const file = req.files.uploadfile;
+
+  var filePath = file.path;
+  var filename = file.originalFilename;
+  var fileData = fs.readFileSync(filePath);
+  console.log('uploadfile',req.body.dir + filename)
+  ftp.put(fileData, req.body.dir + filename, function(hadError) {
+      res.send({status: 200})
+  });
 }
 ftps.list = function (req,res,next){
 
@@ -101,7 +97,7 @@ ftps.list = function (req,res,next){
                 else keyword = 'x'
                 if(file[permission_type][permission]) perm+=keyword
                 else perm += '-'
-              })     
+              })
             }
           })
           if(file.type != 0){
@@ -128,7 +124,7 @@ ftps.download = function (req,res,next){
     return next({errors:[e],status:500})
   }
   //console.log('test',test)
-  
+
   var uniquekey = getCookie('connect.sid',req.headers.cookie)
   var localFilePath = './temp/'+uniquekey + '_' +req.query.name;
   console.log('localFilePath',localFilePath);
